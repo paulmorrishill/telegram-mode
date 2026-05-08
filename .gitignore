@@ -1,2 +1,3 @@
-# Runtime state — contains chat content (router.log) and per-session locks.
+# Runtime state — contains chat content (router.log), credentials (.env on POSIX),
+# and per-session locks.
 state/
