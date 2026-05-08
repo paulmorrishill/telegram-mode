@@ -42,28 +42,49 @@ edit needed.
 
 ## Setup (one-time)
 
-1. **Create a bot.**
-   - Open Telegram, message [@BotFather](https://t.me/BotFather), send
-     `/newbot`, follow the prompts. BotFather replies with a bot token like
-     `1234567890:AAH...`.
-2. **Get your chat ID.**
-   - Open a chat with your new bot, send it any message.
-   - In a browser:
-     `https://api.telegram.org/bot<TOKEN>/getUpdates`
-   - Find `"chat":{"id": <NUMBER>, ...}`. That number is your chat ID.
-3. **Set env vars** (User scope so every shell sees them):
+**1. Create a bot.** Open Telegram, message
+[@BotFather](https://t.me/BotFather), send `/newbot`, follow the prompts.
+BotFather replies with a bot token like `1234567890:AAH...`.
 
-   ```powershell
-   [Environment]::SetEnvironmentVariable('TELEGRAM_BOT_TOKEN', '<paste-token>', 'User')
-   [Environment]::SetEnvironmentVariable('TELEGRAM_CHAT_ID',   '<paste-chat-id>',  'User')
-   ```
+**2. Run the setup wizard.** It opens a small dialog, validates the token,
+asks you to send the bot its first message, captures the chat ID, and
+persists both as User-scope env vars.
 
-   Open a new terminal so the values load.
-4. **Test:**
-   ```powershell
-   pwsh -File "$env:USERPROFILE\.claude\skills\telegram-mode\scripts\Send-Telegram.ps1" -Text "hello from skill"
-   ```
-   You should see the message on your phone.
+```powershell
+pwsh -File "$env:USERPROFILE\.claude\skills\telegram-mode\scripts\Setup-Telegram.ps1"
+```
+
+Steps the wizard walks you through:
+- Paste your bot token (input is masked).
+- It validates via Telegram's `getMe`.
+- It pops a dialog telling you to open Telegram, find your bot, hit START
+  / send any message.
+- It long-polls `getUpdates` until your message arrives, grabs the chat
+  ID.
+- Persists `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` (User scope), then
+  sends a "✅ setup complete" message back to your chat.
+
+**3. Open a NEW terminal** so the env vars load (existing terminals
+won't see them).
+
+**Manual setup (if you'd rather not run the wizard):** the wizard just
+runs `getMe` to validate the token, polls `getUpdates` to find your chat
+ID, then sets two env vars. Set them yourself:
+
+```powershell
+[Environment]::SetEnvironmentVariable('TELEGRAM_BOT_TOKEN', '<paste-token>',   'User')
+[Environment]::SetEnvironmentVariable('TELEGRAM_CHAT_ID',   '<paste-chat-id>', 'User')
+```
+
+To find your chat ID without the wizard: send any message to your bot,
+then visit `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser
+and find `"chat":{"id": <NUMBER>, ...}`.
+
+**Verify:**
+```powershell
+pwsh -File "$env:USERPROFILE\.claude\skills\telegram-mode\scripts\Send-Telegram.ps1" -Text "hello from skill"
+```
+You should get a message on your phone.
 
 ## Use
 
@@ -100,6 +121,7 @@ further Telegram messages on seeing that sentinel.
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | Instructions Claude reads on activation |
+| `scripts/Setup-Telegram.ps1` | One-time setup wizard (dialog: token → chat ID → env vars) |
 | `scripts/Ask-User.ps1` | Sends a question, blocks until reply (thin client of router) |
 | `scripts/Send-Telegram.ps1` | Fire-and-forget message send |
 | `scripts/Telegram-Router.ps1` | Singleton getUpdates daemon, dispatches replies by `reply_to_message_id` |
