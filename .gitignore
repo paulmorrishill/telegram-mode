@@ -1,0 +1,2 @@
+# Runtime state — contains chat content (router.log) and per-session locks.
+state/
